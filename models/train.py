@@ -61,7 +61,6 @@ class Train:
 		# training options
 		trainingArgs = parser.add_argument_group('Training options')
 		trainingArgs.add_argument('--rl', action='store_true', help='whether or not to use REINFORCE algorithm')
-		trainingArgs.add_argument('--model_path', type=str, default='saved')
 		trainingArgs.add_argument('--pre_embedding', action='store_true')
 		trainingArgs.add_argument('--elmo', action='store_true')
 		trainingArgs.add_argument('--train_elmo', action='store_true')
@@ -155,6 +154,11 @@ class Train:
 		# self.discriminator.load_state_dict(discriminator_state_dict)
 
 		with open(self.out_path, 'w') as self.out:
+
+			for k, v in vars(self.args).items():
+				self.out.write('{} = {}\n'.format(str(k), str(v)))
+			self.out.write('\n\n')
+
 			self.train_loop()
 
 	def train_loop(self):
@@ -252,9 +256,9 @@ class Train:
 				# put data to GPU
 				cur_batch_size = lengths.size()[0]
 				if torch.cuda.is_available():
-					word_ids.cuda()
-					lengths.cuda()
-					labels.cuda()
+					word_ids = word_ids.cuda()
+					lengths = lengths.cuda()
+					labels = labels.cuda()
 
 				# 0: democrat
 				# 1: republican
@@ -271,8 +275,8 @@ class Train:
 
 				train_results['n_samples'] += cur_batch_size
 				train_results['accuracy'] += torch.sum(predictions.data.int() == labels.data.int())
-				all_read_rates.extend(valid_mask.data.numpy())
-				all_lengths.extend(lengths.data.numpy())
+				all_read_rates.extend(valid_mask.cpu().data.numpy())
+				all_lengths.extend(lengths.cpu().data.numpy())
 
 				# if idx == 0:
 				# 	break

@@ -3,8 +3,8 @@ LEONHARD = True
 hiddensizes = [200]
 lrs = [0.001]
 dropouts = [0.8]
-thetas = [0.01, 0.1, 1.0]
-gammas = [0.01, 0.1, 1.0]
+thetas = [1e-4, 2e-4, 4e-4, 1e-3]
+gammas = [1e-4, 2e-4, 4e-4, 1e-3]
 
 cnt = 0
 for theta in thetas:
