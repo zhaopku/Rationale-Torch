@@ -53,7 +53,6 @@ class Encoder(nn.Module):
 
 		# [batch_size, hidden_size]
 
-
 		last_relevant_outputs = []
 
 		for idx in range(batch_size):

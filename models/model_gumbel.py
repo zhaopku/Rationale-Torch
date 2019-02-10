@@ -7,11 +7,9 @@ from allennlp.modules.elmo import Elmo, batch_to_ids
 from models.generator import Generator
 from models.encoder import Encoder
 
-
 # elmo params
 options_file = "~/allennlp_cache/elmo_2x4096_512_2048cnn_2xhighway_options.json"
 weight_file = "~/allennlp_cache/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
-
 
 class ModelGumbel(nn.Module):
 	def __init__(self, args, text_data):
@@ -45,7 +43,6 @@ class ModelGumbel(nn.Module):
 		:return:
 		"""
 		# embedded: [batch_size, max_steps, embedding_size]
-
 
 		embedded = self.embedding_layer(x.long())
 		if self.args.elmo:

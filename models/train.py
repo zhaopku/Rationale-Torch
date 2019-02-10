@@ -106,7 +106,7 @@ class Train:
 
 		self.text_data.construct_dataset(elmo=self.args.elmo)
 
-		self.train_loader = DataLoader(dataset=self.text_data.training_dataset, num_workers=1, batch_size=self.args.batch_size, shuffle=True)
+		self.train_loader = DataLoader(dataset=self.text_data.training_dataset, num_workers=1, batch_size=self.args.batch_size, shuffle=False)
 		self.val_loader = DataLoader(dataset=self.text_data.val_dataset, num_workers=1, batch_size=self.args.test_batch_size, shuffle=False)
 		self.test_loader = DataLoader(dataset=self.text_data.test_dataset, num_workers=1, batch_size=self.args.test_batch_size, shuffle=False)
 
@@ -212,6 +212,7 @@ class Train:
 				encoder_loss_avg = encoder_loss.sum() / cur_batch_size
 
 				loss = generator_loss_avg + encoder_loss_avg
+				# loss = encoder_loss_avg
 
 				loss.backward()
 				# for p in self.model.parameters():
@@ -219,24 +220,22 @@ class Train:
 
 				self.optimizer.step()
 
-				# if idx == 0:
-				# 	break
-
 			train_results['read_rate_per_sample'] = np.sum(all_read_rates) / np.sum(all_lengths)
 
 			train_results['accuracy'] = float(train_results['accuracy']) / train_results['n_samples']
 
-			result_line = 'Epoch %d, ' % e
+			result_line = 'Epoch %d, Train, ' % e
 			for k, v in train_results.items():
 				result_line += '{} = {}, '.format(k, v)
 			print(result_line)
-			self.out.write(result_line+'\n')
+			self.out.write(result_line+'\n\n')
 			self.out.flush()
+
+			continue
 
 			self.validate(epoch=e, mode='val')
 			self.validate(epoch=e, mode='test')
 
-	# self.validate(epoch=e)
 
 	def validate(self, epoch, mode='test'):
 		if mode == 'test':
@@ -295,6 +294,7 @@ class Train:
 			if train_results['accuracy'] >= self.cur_best_val_acc and mode != 'test':
 				save_path = os.path.join(self.model_dir, 'model.pth')
 				print('saving models at {}'.format(save_path))
+				self.out.write('saving models at {}\n'.format(save_path))
 				torch.save(self.model.state_dict(), os.path.join(self.model_dir, 'model.pth'))
 
 			# if train_results['accuracy'] >= self.cur_best_val_acc and mode == 'test':

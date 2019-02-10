@@ -13,7 +13,6 @@ class EncoderCell(nn.Module):
 
 		self.fully_connected = nn.Linear(in_features=self.hidden_size+self.input_size, out_features=4*self.hidden_size)
 
-
 	def forward(self, cur_embed, last_hidden, last_cell, mask):
 		"""
 
@@ -28,7 +27,6 @@ class EncoderCell(nn.Module):
 		inputs = torch.cat([cur_embed, last_hidden], dim=1)
 
 		gate_inputs = self.fully_connected(inputs)
-
 
 		# i = input_gate, j = new_input, f = forget_gate, o = output_gate
 		# [batch_size, hidden_size]

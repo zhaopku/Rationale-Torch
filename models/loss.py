@@ -38,4 +38,3 @@ class GeneratorLoss(nn.Module):
 		generator_loss = self.selection_weight*selection_loss + self.transition_weight*transitions_loss
 
 		return selection_loss, transitions_loss, generator_loss, valid_mask
-
