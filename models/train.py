@@ -153,6 +153,7 @@ class Train:
 		# self.generator.load_state_dict(generate_state_dict)
 		# self.discriminator.load_state_dict(discriminator_state_dict)
 
+
 		with open(self.out_path, 'w') as self.out:
 
 			for k, v in vars(self.args).items():
