@@ -73,8 +73,8 @@ class Train:
 
 		trainingArgs.add_argument('--epochs', type=int, default=2000, help='most training epochs')
 		trainingArgs.add_argument('--load_model', action='store_true', help='whether or not to use old models')
-		trainingArgs.add_argument('--theta', type=float, default=0.0, help='for #choices')
-		trainingArgs.add_argument('--gamma', type=float, default=0.0, help='for continuity')
+		trainingArgs.add_argument('--theta', type=float, default=1e-3, help='for #choices')
+		trainingArgs.add_argument('--gamma', type=float, default=1e-3, help='for continuity')
 		trainingArgs.add_argument('--temperature', type=float, default=0.5, help='gumbel softmax temperature')
 		trainingArgs.add_argument('--threshold', type=float, default=0.5, help='threshold for producing hard mask')
 		trainingArgs.add_argument('--test_model', action='store_true')
@@ -109,7 +109,6 @@ class Train:
 		self.train_loader = DataLoader(dataset=self.text_data.training_dataset, num_workers=1, batch_size=self.args.batch_size, shuffle=False)
 		self.val_loader = DataLoader(dataset=self.text_data.val_dataset, num_workers=1, batch_size=self.args.test_batch_size, shuffle=False)
 		self.test_loader = DataLoader(dataset=self.text_data.test_dataset, num_workers=1, batch_size=self.args.test_batch_size, shuffle=False)
-
 
 	def construct_model(self):
 		self.model = ModelGumbel(args=self.args, text_data=self.text_data)
@@ -220,6 +219,7 @@ class Train:
 				# 	print(p.grad)
 
 				self.optimizer.step()
+				break
 
 			train_results['read_rate_per_sample'] = np.sum(all_read_rates) / np.sum(all_lengths)
 
@@ -229,10 +229,9 @@ class Train:
 			for k, v in train_results.items():
 				result_line += '{} = {}, '.format(k, v)
 			print(result_line)
+			continue
 			self.out.write(result_line+'\n\n')
 			self.out.flush()
-
-			continue
 
 			self.validate(epoch=e, mode='val')
 			self.validate(epoch=e, mode='test')
