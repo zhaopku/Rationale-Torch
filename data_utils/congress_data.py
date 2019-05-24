@@ -3,7 +3,7 @@ from collections import defaultdict, Counter
 import numpy as np
 import random
 from tqdm import tqdm
-from models.congress_data_utils import Sample, CongressDataSet
+from data_utils.congress_data_utils import Sample, CongressDataSet
 import nltk
 import pickle as p
 

@@ -16,6 +16,9 @@ bsub -W 24:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngp
 bsub -W 24:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 2 --drop_out 0.8 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 0.001 --gamma 0.0002 &&
 bsub -W 24:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 2 --drop_out 0.8 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 0.001 --gamma 0.0004 &&
 
+module load python_gpu/3.6.4 &&
+bsub -W 4:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 1 --drop_out 1.0 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 0.0 --gamma 0.0
+bsub -W 4:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 1 --drop_out 1.0 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 1e-4 --gamma 1e-4
 
-bsub -W 4:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 2 --drop_out 0.8 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 0.0 --gamma 0.0
-bsub -W 4:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 2 --drop_out 0.8 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 1e-4 --gamma 1e-4
+module load python_gpu/3.6.4 &&
+bsub -W 4:00 -n 2 -R  "select[gpu_model1==GeForceGTX1080Ti] rusage[mem=8192,ngpus_excl_p=1]" python main.py --pre_embedding --hidden_size 200 --max_steps 1000 --gen_bidirectional --gen_layers 1 --drop_out 1.0 --batch_size 100 --test_batch_size 100 --learning_rate 0.001 --epochs 200 --theta 1e-3 --gamma 1e-3

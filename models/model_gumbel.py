@@ -20,7 +20,7 @@ class ModelGumbel(nn.Module):
 		# embedding layer
 		if self.args.pre_embedding and not self.args.elmo:
 			# pre_trained embeddings are 300 dimensional, trainable
-			self.embedding_layer = nn.Embedding.from_pretrained(torch.Tensor(self.text_data.pre_trained_embedding), freeze=False)
+			self.embedding_layer = nn.Embedding.from_pretrained(torch.tensor(self.text_data.pre_trained_embedding), freeze=False)
 
 		elif self.args.elmo:
 			self.embedding_layer = Elmo(options_file, weight_file, 1, dropout=1.0-self.args.drop_out,

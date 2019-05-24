@@ -44,7 +44,8 @@ def construct_dir(prefix, args, create_dataset_name):
 		file_name = ''
 		file_name += prefix + '-'
 		file_name += str(args.vocab_size) + '-'
-		file_name += str(args.data_size) + '-'
+		if args.dataset != 'rotten':
+			file_name += str(args.data_size) + '-'
 		file_name += str(args.max_length) + '.pkl'
 		return file_name
 

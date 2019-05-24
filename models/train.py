@@ -5,11 +5,15 @@ import os
 import torch.optim as optimizer
 from torch.utils.data import DataLoader
 from models import utils
-from models.congress_data import CongressData
+from data_utils.congress_data import CongressData
 import pickle as p
 from models.model_gumbel import ModelGumbel
+from models.model_naive import ModelNaive
 from models.loss import GeneratorLoss
 import numpy as np
+from torch import nn
+from tensorboardX import SummaryWriter
+from data_utils.rotten_data import RottenData
 
 class Train:
 	def __init__(self):
@@ -46,12 +50,18 @@ class Train:
 		data_args.add_argument('--max_length', type=int, default=1000, help='max length of samples')
 		data_args.add_argument('--data_size', type=int, default=1000, help='number of subdirs to include')
 
+		# only valid when using rotten
+		data_args.add_argument('--train_file', type=str, default='train.txt')
+		data_args.add_argument('--val_file', type=str, default='val.txt')
+		data_args.add_argument('--test_file', type=str, default='test.txt')
+
 		# neural network options
 		nn_args = parser.add_argument_group('Network options')
 		nn_args.add_argument('--embedding_size', type=int, default=300)
 		nn_args.add_argument('--hidden_size', type=int, default=200)
 		nn_args.add_argument('--gen_layers', type=int, default=2)
 		nn_args.add_argument('--gen_bidirectional', action='store_true')
+		nn_args.add_argument('--naive', action='store_true', help='use a naive model')
 
 		nn_args.add_argument('--max_steps', type=int, default=1000, help='number of steps in RNN')
 		nn_args.add_argument('--n_classes', type=int, default=2)
@@ -88,7 +98,7 @@ class Train:
 
 		if not os.path.exists(dataset_file_name):
 			if self.args.dataset == 'rotten':
-				raise NotImplementedError
+				self.text_data = RottenData(args=self.args)
 			elif self.args.dataset == 'congress':
 				self.text_data = CongressData(args=self.args)
 			else:
@@ -111,11 +121,14 @@ class Train:
 		self.test_loader = DataLoader(dataset=self.text_data.test_dataset, num_workers=1, batch_size=self.args.test_batch_size, shuffle=False)
 
 	def construct_model(self):
-		self.model = ModelGumbel(args=self.args, text_data=self.text_data)
+		if self.args.naive:
+			self.model = ModelNaive(args=self.args, text_data=self.text_data)
+		else:
+			self.model = ModelGumbel(args=self.args, text_data=self.text_data)
 		self.optimizer = optimizer.Adam(self.model.parameters(), lr=self.args.learning_rate)
 
 		self.generator_loss = GeneratorLoss(args=self.args)
-		self.encoder_loss = torch.nn.BCELoss(reduction='none')
+		self.encoder_loss = nn.BCELoss(reduction='none')
 
 	def construct_out_dir(self):
 		self.model_dir = utils.construct_dir(prefix=self.args.model_dir, args=self.args, create_dataset_name=False)
@@ -132,7 +145,6 @@ class Train:
 		if not os.path.exists(self.out_dir):
 			os.makedirs(self.out_dir)
 
-
 	def main(self, args=None):
 		print('PyTorch Version {}, GPU enabled {}'.format(torch.__version__, torch.cuda.is_available()))
 		self.args = self.parse_args(args=args)
@@ -142,16 +154,6 @@ class Train:
 		self.construct_model()
 
 		self.construct_out_dir()
-
-		# self.model_path = './saved_models/up_2.pth'
-		# if torch.cuda.is_available():
-		# 	(generate_state_dict, discriminator_state_dict) = torch.load(self.model_path, map_location='gpu')
-		# else:
-		# 	(generate_state_dict, discriminator_state_dict) = torch.load(self.model_path, map_location='cpu')
-		#
-		# self.generator.load_state_dict(generate_state_dict)
-		# self.discriminator.load_state_dict(discriminator_state_dict)
-
 
 		with open(self.out_path, 'w') as self.out:
 
@@ -187,7 +189,6 @@ class Train:
 					word_ids = word_ids.cuda()
 					lengths = lengths.cuda()
 					labels = labels.cuda()
-
 
 				self.model.zero_grad()
 				# 0: democrat
@@ -277,9 +278,6 @@ class Train:
 				all_read_rates.extend(valid_mask.cpu().data.numpy())
 				all_lengths.extend(lengths.cpu().data.numpy())
 
-				# if idx == 0:
-				# 	break
-
 			train_results['read_rate_per_sample'] = np.sum(all_read_rates) / np.sum(all_lengths)
 
 			train_results['accuracy'] = float(train_results['accuracy']) / train_results['n_samples']
@@ -296,18 +294,3 @@ class Train:
 				print('saving models at {}'.format(save_path))
 				self.out.write('saving models at {}\n'.format(save_path))
 				torch.save(self.model.state_dict(), os.path.join(self.model_dir, 'model.pth'))
-
-			# if train_results['accuracy'] >= self.cur_best_val_acc and mode == 'test':
-			# 	for idx, (id_, word_ids, lengths, labels) in enumerate(tqdm(loader)):
-			# 		with open(os.path.join(self.out_dir, id_), 'w') as file:
-			# 			masks = all_read_rates[idx]
-			#
-			# 			if sample.label == all_predictions[idx]:
-			# 				file.write('correct\n')
-			# 			else:
-			# 				file.write('wrong\n')
-			#
-			# 			for i, word in enumerate(sample.words[:sample.length]):
-			# 				file.write('{}({}) '.format(word, masks[i]))
-			# 				if i % 20 == 0:
-			# 					file.write('\n')
