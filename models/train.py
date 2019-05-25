@@ -130,6 +130,8 @@ class Train:
 		self.generator_loss = GeneratorLoss(args=self.args)
 		self.encoder_loss = nn.BCELoss(reduction='none')
 
+		self.loss = nn.CrossEntropyLoss(reduction='mean')
+
 	def construct_out_dir(self):
 		self.model_dir = utils.construct_dir(prefix=self.args.model_dir, args=self.args, create_dataset_name=False)
 		self.out_dir = utils.construct_dir(prefix=self.args.test_dir, args=self.args, create_dataset_name=False)
@@ -160,10 +162,46 @@ class Train:
 			for k, v in vars(self.args).items():
 				self.out.write('{} = {}\n'.format(str(k), str(v)))
 			self.out.write('\n\n')
+			if self.args.naive:
+				self.train_naive()
+			else:
+				self.train()
 
-			self.train_loop()
+	def train_naive(self):
+		"""
+		naive training
+		:return:
+		"""
+		if torch.cuda.is_available():
+			self.model.cuda()
 
-	def train_loop(self):
+		for e in range(self.args.epochs):
+			self.model.train()
+
+			train_results = {'accuracy':0.0, 'loss':0.0, 'n_samples': 0}
+
+			for idx, (id_, word_ids, lengths, labels) in enumerate(tqdm(self.train_loader)):
+				cur_batch_size = lengths.size(0)
+				if torch.cuda.is_available():
+					word_ids = word_ids.cuda()
+					lengths = lengths.cuda()
+					labels = labels.cuda()
+
+				logits = self.model(word_ids, lengths)
+				predictions = torch.argmax(logits, dim=-1)
+
+				corrects = (predictions == labels).sum()
+				print(corrects)
+
+				loss = self.loss(logits, labels)
+				self.model.zero_grad()
+				loss.backward()
+				self.optimizer.step()
+
+
+
+
+	def train(self):
 
 		# put model to GPU if available
 		if torch.cuda.is_available():
@@ -177,7 +215,7 @@ class Train:
 			self.model.train()
 
 			train_results = {'accuracy':0.0, 'read_rate_per_sample':0.0, 'selection_loss': 0.0,
-			              'transition_loss': 0.0, 'generator_loss': 0.0, 'encoder_loss':0.0, 'n_samples':0}
+			              'transition_loss': 0.0, 'generator_loss': 0.0, 'encoder_loss':0.0, 'n_samples': 0}
 			all_read_rates = []
 			all_lengths = []
 

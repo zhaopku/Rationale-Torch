@@ -4,10 +4,12 @@ import numpy as np
 import random
 from tqdm import tqdm
 import nltk
+from torch.utils.data.dataset import Dataset
+import torch
 
 class Sample:
 	def __init__(self, data, words, steps, label, length, id):
-		self.input_ = data[0:steps]
+		self.word_ids = data[0:steps]
 		self.sentence = words[0:steps]
 		self.length = length
 		self.label = label
@@ -19,6 +21,18 @@ class Batch:
 		self.samples = samples
 		self.batch_size = len(samples)
 
+class RottenDataSet(Dataset):
+	def __init__(self, samples):
+		super(RottenDataSet, self).__init__()
+		self.samples = samples
+
+	def __getitem__(self, index):
+		sample = self.samples[index]
+
+		return sample.id, torch.tensor(sample.word_ids), sample.length, sample.label
+
+	def __len__(self):
+		return len(self.samples)
 
 class RottenData:
 	def __init__(self, args):
@@ -43,16 +57,21 @@ class RottenData:
 		self.test_samples = None
 		self.pre_trained_embedding = None
 
-		self.train_samples, self.valid_samples, self.test_samples = self._create_data()
+		self.train_samples, self.val_samples, self.test_samples = self._create_data()
 
 		# [num_batch, batch_size, maxStep]
 		self.train_batches = self._create_batch(self.train_samples)
-		self.val_batches = self._create_batch(self.valid_samples)
+		self.val_batches = self._create_batch(self.val_samples)
 
 		# note: test_batches is none here
 		self.test_batches = self._create_batch(self.test_samples)
 
 		print('Dataset created')
+
+	def construct_dataset(self, elmo=None):
+		self.training_dataset = RottenDataSet(samples=self.train_samples)
+		self.val_dataset = RottenDataSet(samples=self.val_samples)
+		self.test_dataset = RottenDataSet(samples=self.test_samples)
 
 
 	def getVocabularySize(self):

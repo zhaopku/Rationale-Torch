@@ -55,7 +55,7 @@ class CongressDataSet(Dataset):
 			word_ids = batch_to_ids([words])
 			word_ids.squeeze_(dim=0)
 		else:
-			word_ids = torch.Tensor(word_ids)
+			word_ids = torch.tensor(word_ids)
 
 		return sample.id, word_ids, length, sample.label
 

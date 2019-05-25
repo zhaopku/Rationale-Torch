@@ -15,19 +15,19 @@ class ModelNaive(nn.Module):
 
 		self.hidden = nn.Linear(in_features=self.args.hidden_size, out_features=2, bias=True)
 
-	def forward(self, word_ids, length):
+	def forward(self, word_ids, lengths):
 		"""
 
 		:param word_ids: [batch_size, max_steps]
-		:param length: [batch_size]
+		:param lengths: [batch_size]
 		:return:
 		"""
 		# [batch_size, max_steps, embedding_size]
-		embedded = self.embedding_layer(word_ids.long())
+		embedded = self.embedding_layer(word_ids.long()).float()
 		# [batch_size, max_steps, hidden_size]
 		outputs, (h_n, c_n) = self.rnn(embedded)
 
-		last_relevant_outputs = torch.index_select(outputs, dim=1, index=length)
+		last_relevant_outputs = torch.index_select(outputs, dim=1, index=lengths)
 
 		logits = self.hidden(last_relevant_outputs)
 
